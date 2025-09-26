@@ -1,14 +1,36 @@
 # CANTAO Solax Add-on
 
-Dieses Projekt liefert ein Python Add-on, das die Daten von Solax Wechselrichtern über die Solax Cloud API abruft und für CANTAO aufbereitet. Der Fokus liegt auf einer leichtgewichtigen Integration, die ohne tiefgreifende Änderungen am CANTAO-Kern auskommt.
+Dieses Projekt liefert ein Python-Add-on, das Messwerte von Solax-Wechselrichtern über die Solax-Cloud-API abruft, normalisiert und für CANTAO bereitstellt. Der Fokus liegt auf einer leichtgewichtigen Integration, die ohne tiefgreifende Änderungen am CANTAO-Kern auskommt und sich direkt in bestehende Dashboards integrieren lässt.
 
 ## Funktionen
 
 - Unterstützung der Solax Cloud API (v1 und v2)
 - Automatische Normalisierung der Messwerte in ein einheitliches Datenmodell
 - Konfigurierbare Transformationen zur Abbildung auf CANTAO-Metriken
-- CLI-Tool zum Abrufen oder direkten Weiterleiten der Daten an eine CANTAO Instanz
+- CLI-Tool zum Abrufen oder direkten Weiterleiten der Daten an eine CANTAO-Instanz
 - Robuste Fehlerbehandlung samt Logging
+- Dokumentierte Schritt-für-Schritt-Anleitung für die Einbindung in der CANTAO-Oberfläche
+
+## Mögliche Entitäten
+
+Das Add-on normalisiert Solax-Felder in metrische Schlüssel, die in CANTAO als Entitäten erscheinen. Die konkrete Auswahl hängt vom jeweiligen Wechselrichter und Firmware-Stand ab. Typische Felder sind:
+
+| Solax-Feld          | Standard-Metrikschlüssel      | Beschreibung                                  |
+|---------------------|-------------------------------|-----------------------------------------------|
+| `acpower`           | `solax.acpower`               | Aktuelle AC-Ausgangsleistung in Watt          |
+| `yieldtoday`        | `solax.yieldtoday`            | Tagesertrag in kWh                            |
+| `yieldtotal`        | `solax.yieldtotal`            | Gesamtertrag in kWh                           |
+| `feedinpower`       | `solax.feedinpower`           | Einspeiseleistung Richtung Netz in Watt       |
+| `feedinenergy`      | `solax.feedinenergy`          | Gesamteinspeisung in kWh                      |
+| `consumeenergy`     | `solax.consumeenergy`         | Gesamtverbrauch in kWh                        |
+| `consumepower`      | `solax.consumepower`          | Aktuelle Leistungsaufnahme in Watt            |
+| `soc`               | `solax.soc`                   | Ladezustand des Speichers in Prozent          |
+| `batterypower`      | `solax.batterypower`          | Batterie-Leistungsfluss (Vorzeichen beachten) |
+| `pvpower1` / `pvpower2` | `solax.pvpower1` / `solax.pvpower2` | Eingangsleistung der PV-Strings in Watt |
+| `temperature`       | `solax.temperature`          | Gerätetemperatur in °C                        |
+| `gridvoltage`       | `solax.gridvoltage`           | Netzspannung in Volt                          |
+
+Über die Option `metric_mapping` in der Konfiguration können diese Schlüssel individuell auf bestehende CANTAO-Entitäten abgebildet werden, z. B. `"yieldtoday" = "energy.today"`.
 
 ## Installation
 
@@ -39,6 +61,7 @@ timeout = 10
 base_url = "https://cantao.example.com"
 api_token = "<CANTAO_TOKEN>"
 metric_prefix = "solax"
+metric_mapping = { "yieldtoday" = "energy.today" }
 ```
 
 ## Verwendung
@@ -57,10 +80,24 @@ cantao-solax --config /pfad/zur/config.toml push
 
 Der Push-Befehl sendet die normalisierten Daten als JSON-Load an die konfigurierte CANTAO-Instanz. Auf CANTAO-Seite wird ein generischer `/api/v1/metrics`-Endpunkt angenommen.
 
+## Integration in CANTAO
+
+Eine ausführliche Schritt-für-Schritt-Anleitung zur Einrichtung (inkl. UI-Navigation, Token-Hinterlegung und Dashboard-Konfiguration) finden Sie in [docs/integration-guide.md](docs/integration-guide.md). Die wichtigsten Schritte lauten zusammengefasst:
+
+1. Add-on installieren und Konfiguration anpassen.
+2. Mit `cantao-solax fetch` einen Testabruf durchführen.
+3. Einen periodischen `push`-Job (z. B. Cron) einrichten.
+4. In der CANTAO-Oberfläche unter **Einstellungen → Integrationen** eine neue externe Metrikquelle anlegen, das API-Token hinterlegen und gewünschte Widgets konfigurieren.
+
 ## Entwicklung
 
 - Tests ausführen: `pytest`
 - Linting (optional): `ruff check src`
+
+## Weiterführende Informationen
+
+- Änderungsverlauf: siehe [CHANGELOG.md](CHANGELOG.md)
+- Ausführliche Integrationsbeschreibung: [docs/integration-guide.md](docs/integration-guide.md)
 
 ## Lizenz
 
