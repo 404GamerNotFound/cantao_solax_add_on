@@ -34,6 +34,46 @@ Das Add-on normalisiert Solax-Felder in metrische Schlüssel, die in CANTAO als 
 
 ## Installation
 
+### Contao-Integration
+
+Das Repository enthält nun ein vollwertiges Contao-Bundle (`cantao/solax-bundle`), das die komplette Kommunikation mit der Solax-Cloud innerhalb einer Contao-Instanz erledigt.
+
+1. Binden Sie das Bundle über Composer in Ihr Contao-Projekt ein:
+
+   ```bash
+   composer require cantao/solax-bundle:@dev
+   ```
+
+   > Hinweis: Beim lokalen Entwickeln kann das Bundle auch per `path`-Repository eingebunden werden.
+
+2. Führen Sie den Contao Manager oder `vendor/bin/contao-console contao:migrate` aus, damit die Tabelle `tl_solax_metric` angelegt wird.
+
+3. Hinterlegen Sie die Solax-Zugangsdaten in Ihrer Projektkonfiguration, z. B. in `config/config.yml`:
+
+   ```yaml
+   cantao_solax:
+     solax:
+       base_url: 'https://www.solaxcloud.com:9443'
+       api_version: 'v1'
+       api_key: '%env(SOLAX_API_KEY)%'
+       serial_number: '%env(SOLAX_SERIAL)%'
+       site_id: '%env(string:SOLAX_SITE_ID)%'
+       timeout: 10
+     cantao:
+       metric_prefix: 'solax'
+       metric_mapping:
+         yieldtoday: 'energy.today'
+         yieldtotal: 'energy.total'
+     storage:
+       table: 'tl_solax_metric'
+     cron:
+       interval: 'hourly' # möglich sind z. B. minutely, hourly, daily
+   ```
+
+4. Nach erfolgreicher Konfiguration steht unter **System → Cron** ein Job „SolaxSyncCron“ zur Verfügung. Dieser ruft in dem angegebenen Intervall die Werte ab und schreibt sie in die Tabelle `tl_solax_metric`. Die Datensätze lassen sich über das Backend (DCA `tl_solax_metric`) einsehen und weiterverarbeiten.
+
+### Python-Add-on
+
 ```bash
 pip install .
 ```
