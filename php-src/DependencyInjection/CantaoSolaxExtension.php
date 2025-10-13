@@ -23,6 +23,8 @@ class CantaoSolaxExtension extends Extension
         $container->setParameter('cantao_solax.solax_config', $config['solax']);
         $container->setParameter('cantao_solax.metric_mapping', $config['cantao']['metric_mapping']);
         $container->setParameter('cantao_solax.metric_prefix', $config['cantao']['metric_prefix']);
+        $container->setParameter('cantao_solax.ignored_fields', $config['cantao']['ignore_fields']);
+        $container->setParameter('cantao_solax.decimal_precision', $config['cantao']['decimal_precision']);
         $container->setParameter('cantao_solax.cron_interval', $config['cron']['interval']);
 
         $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
@@ -33,7 +35,9 @@ class CantaoSolaxExtension extends Extension
 
         $container->getDefinition(MetricNormalizer::class)
             ->setArgument('$mapping', '%cantao_solax.metric_mapping%')
-            ->setArgument('$prefix', '%cantao_solax.metric_prefix%');
+            ->setArgument('$prefix', '%cantao_solax.metric_prefix%')
+            ->setArgument('$ignoredFields', '%cantao_solax.ignored_fields%')
+            ->setArgument('$decimalPrecision', '%cantao_solax.decimal_precision%');
 
         $cronDefinition = $container->getDefinition(SolaxSyncCron::class);
         $cronDefinition

@@ -11,6 +11,8 @@ statt.
 - Normalisierung der gelieferten Rohdaten in strukturierte Metriken
 - Speicherung der Werte in der Contao-Tabelle `tl_solax_metric`
 - Konfigurierbares Präfix und Mapping für individuelle CANTAO-Bezeichnungen
+- Konfigurierbare Wiederholversuche und Timeout für eine robustere API-Kommunikation
+- Optionales Ausblenden unerwünschter Rohfelder sowie Rundung von Dezimalwerten
 - Registrierter Cron-Job `SolaxSyncCron`, der die Daten automatisiert synchronisiert
 - Backend-Integration über DCA, damit die Werte im Contao-Backend eingesehen werden können
 
@@ -55,11 +57,16 @@ cantao_solax:
     serial_number: '%env(SOLAX_SERIAL)%'
     site_id: '%env(string:SOLAX_SITE_ID)%'
     timeout: 10
+    retry_count: 2
+    retry_delay: 1000 # in Millisekunden
   cantao:
     metric_prefix: 'solax'
     metric_mapping:
       yieldtoday: 'energy.today'
       yieldtotal: 'energy.total'
+    ignore_fields:
+      - inverterSN
+    decimal_precision: 2
   storage:
     table: 'tl_solax_metric'
   cron:
@@ -67,13 +74,20 @@ cantao_solax:
 ```
 
 Sensitive Werte sollten – wie im Beispiel – über Umgebungsvariablen eingebunden werden. Die Option `metric_mapping` erlaubt es,
-die automatisch generierten Schlüssel auf projektspezifische Namen abzubilden.
+die automatisch generierten Schlüssel auf projektspezifische Namen abzubilden. Mit `ignore_fields` lassen sich störende Rohwerte
+komplett aus der Verarbeitung entfernen, und `decimal_precision` legt fest, wie viele Nachkommastellen bei Fließkommawerten
+erhalten bleiben.
+
+Die Parameter `retry_count` und `retry_delay` definieren, wie oft und wie lange verzögert fehlgeschlagene API-Anfragen erneut
+versucht werden. So lassen sich temporäre Ausfälle oder Netzwerkprobleme abfedern, ohne dass der Cron-Job dauerhaft fehlschlägt.
 
 ## Betrieb
 
 Nach erfolgreicher Installation registriert das Bundle den Cron-Job `SolaxSyncCron`. Dieser ruft im konfigurierten Intervall die
-Solax-Cloud ab, normalisiert die Daten und schreibt sie in die Tabelle `tl_solax_metric`. Über den Contao-Backendbereich lassen sich
-die Datensätze prüfen und bei Bedarf weiterverarbeiten.
+Solax-Cloud ab, normalisiert die Daten und schreibt sie in die Tabelle `tl_solax_metric`. Der Job prüft vor dem Schreiben, ob sich
+die Werte seit dem letzten Lauf verändert haben, protokolliert die Anzahl der gespeicherten bzw. übersprungenen Datensätze und
+vermeidet so unnötige Schreiboperationen. Über den Contao-Backendbereich lassen sich die Datensätze weiterhin prüfen und bei Bedarf
+weiterverarbeiten.
 
 Für die Visualisierung innerhalb von CANTAO wählen Sie in Ihren Dashboards die Integration „Solax“ aus und fügen die gewünschten
 Metriken hinzu. Die standardmäßig gelieferten Kennzahlen umfassen unter anderem AC-Leistung, Tages- und Gesamtertrag, Einspeisung,
@@ -83,8 +97,21 @@ Verbrauch, Ladezustand und PV-String-Leistungen.
 
 - **Cron-Intervall:** Das Intervall kann in der Konfiguration (`cantao_solax.cron.interval`) angepasst werden.
 - **Eigene Mappings:** Über `cantao_solax.cantao.metric_mapping` lassen sich Rohschlüssel auf bestehende CANTAO-Entitäten abbilden.
+- **Feldfilter:** Mit `cantao_solax.cantao.ignore_fields` blenden Sie unerwünschte Rohfelder vollständig aus.
+- **Rundung:** `cantao_solax.cantao.decimal_precision` steuert die Anzahl der Nachkommastellen für Fließkommazahlen.
+- **Retry-Strategie:** Über `cantao_solax.solax.retry_count` und `cantao_solax.solax.retry_delay` definieren Sie einen robusten
+  Wiederholmechanismus bei kurzzeitigen Ausfällen.
 - **Logging:** Das Bundle nutzt den Symfony-Logger. Stellen Sie sicher, dass dieser im Projekt korrekt konfiguriert ist, um Fehler
   beim Abruf oder der Speicherung nachvollziehen zu können.
+
+## Monitoring & Fehlerbehebung
+
+- Der Cron-Job protokolliert, wie viele Werte geschrieben bzw. unverändert übersprungen wurden. So erkennen Sie auf einen Blick,
+  ob neue Daten eingetroffen sind.
+- Werden alle Werte übersprungen, liegt das entweder an unveränderten Messwerten oder an zu restriktiven Filtern in
+  `ignore_fields`.
+- Bei häufigen Netzwerkproblemen erhöhen Sie testweise `retry_count` oder verlängern `retry_delay`, bevor Sie drastisch an der
+  Timeout-Konfiguration drehen.
 
 ## Entwicklung
 

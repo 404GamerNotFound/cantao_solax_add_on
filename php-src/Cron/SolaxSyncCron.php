@@ -25,11 +25,22 @@ class SolaxSyncCron
         try {
             $raw = $this->solaxClient->fetchRealtimeData();
             $metrics = $this->normalizer->normalise($raw);
-            $this->repository->storeMetrics($metrics);
+            if ($metrics === []) {
+                $this->logger->notice('Solax API responded without usable metric values. Nothing was written to the database.');
 
-            $this->logger->info('Stored {count} Solax metrics.', [
-                'count' => count($metrics),
-            ]);
+                return;
+            }
+
+            $result = $this->repository->storeMetrics($metrics);
+
+            if ($result->hasChanges()) {
+                $this->logger->info('Stored {written} Solax metrics ({unchanged} unchanged).', [
+                    'written' => $result->getWritten(),
+                    'unchanged' => $result->getUnchanged(),
+                ]);
+            } else {
+                $this->logger->notice('No Solax metric values changed since the last run. Skipped database write.');
+            }
         } catch (\Throwable $exception) {
             $this->logger->error('Failed to synchronise Solax metrics: {message}', [
                 'message' => $exception->getMessage(),

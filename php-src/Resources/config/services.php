@@ -26,6 +26,8 @@ return static function (ContainerConfigurator $configurator): void {
         ->args([
             [],
             'solax',
+            [],
+            null,
         ]);
 
     $services
