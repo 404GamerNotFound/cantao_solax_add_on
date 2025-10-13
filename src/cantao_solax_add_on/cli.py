@@ -10,6 +10,7 @@ import sys
 from .api import SolaxAPI, SolaxAPIError
 from .client import CantaoPushError, CantaoSolaxClient
 from .config import AppConfig, load_config
+from .dashboard import create_demo_client, run_dashboard
 
 
 def _configure_logging(level: str) -> None:
@@ -64,6 +65,26 @@ def build_parser() -> argparse.ArgumentParser:
     push_parser.add_argument("--pretty", action="store_true", help="Pretty print JSON output for dry-run")
     push_parser.add_argument("--dry-run", action="store_true", help="Fetch data but do not push it")
 
+    serve_parser = subparsers.add_parser("serve", help="Interaktives Dashboard starten")
+    serve_parser.add_argument("--host", default="127.0.0.1", help="Bind address (default: 127.0.0.1)")
+    serve_parser.add_argument("--port", default=5000, type=int, help="Bind port (default: 5000)")
+    serve_parser.add_argument(
+        "--refresh",
+        default=30,
+        type=int,
+        help="Refresh interval for the browser dashboard (seconds)",
+    )
+    serve_parser.add_argument(
+        "--open-browser",
+        action="store_true",
+        help="Öffnet nach dem Start automatisch den Standardbrowser",
+    )
+    serve_parser.add_argument(
+        "--demo-data",
+        action="store_true",
+        help="Verwendet eine integrierte Demo-Datenquelle (kein API-Zugriff)",
+    )
+
     return parser
 
 
@@ -74,13 +95,26 @@ def main(argv: list[str] | None = None) -> int:
     _configure_logging(args.log_level)
 
     try:
-        config = load_config(args.config)
-        client = _build_client(config)
+        config: AppConfig | None = None
+        if args.command == "serve" and args.demo_data:
+            client = create_demo_client()
+        else:
+            config = load_config(args.config)
+            client = _build_client(config)
 
         if args.command == "fetch":
             return _cmd_fetch(client, args.pretty)
         if args.command == "push":
             return _cmd_push(client, args.dry_run, args.pretty)
+        if args.command == "serve":
+            run_dashboard(
+                client,
+                host=args.host,
+                port=args.port,
+                refresh_seconds=args.refresh,
+                open_browser=args.open_browser,
+            )
+            return 0
         parser.error("Unknown command")
     except FileNotFoundError as exc:
         logging.error("Configuration file not found: %%s", exc)
