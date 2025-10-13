@@ -78,6 +78,19 @@ die automatisch generierten Schlüssel auf projektspezifische Namen abzubilden. 
 komplett aus der Verarbeitung entfernen, und `decimal_precision` legt fest, wie viele Nachkommastellen bei Fließkommawerten
 erhalten bleiben.
 
+### Fake-Data-Modus und Backend-Einstellungen
+
+Über **System → Einstellungen** stehen zusätzliche Konfigurationsmöglichkeiten bereit:
+
+- Im Abschnitt **Solax Fake-Daten** lässt sich ein Fake-Data-Modus aktivieren. Er simuliert PV-Werte anhand der aktuellen Uhrzeit,
+  Sonnenauf- und -untergang sowie einer konfigurierbaren Wolkenwahrscheinlichkeit. Standort (Breiten- und Längengrad), Peakleistung
+  und Grundlast können angepasst werden.
+- Im Abschnitt **Solax Zugangsdaten** werden die echten API-Zugangsdaten hinterlegt. Sobald gültige Anmeldedaten vorhanden sind und
+  der Fake-Data-Modus deaktiviert ist, ruft das Bundle automatisch Live-Daten aus der Solax-Cloud ab.
+
+Ohne aktivierten Fake-Data-Modus und ohne hinterlegte Zugangsdaten überspringt der Cronjob die Synchronisation und protokolliert
+einen Hinweis im System-Log.
+
 Die Parameter `retry_count` und `retry_delay` definieren, wie oft und wie lange verzögert fehlgeschlagene API-Anfragen erneut
 versucht werden. So lassen sich temporäre Ausfälle oder Netzwerkprobleme abfedern, ohne dass der Cron-Job dauerhaft fehlschlägt.
 
