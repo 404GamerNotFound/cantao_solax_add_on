@@ -1,183 +1,95 @@
-# CANTAO Solax Add-on
+# CANTAO Solax Bundle
 
-Dieses Projekt liefert ein Python-Add-on, das Messwerte von Solax-Wechselrichtern über die Solax-Cloud-API abruft, normalisiert und für CANTAO bereitstellt. Der Fokus liegt auf einer leichtgewichtigen Integration, die ohne tiefgreifende Änderungen am CANTAO-Kern auskommt und sich direkt in bestehende Dashboards integrieren lässt.
+Das Bundle integriert Solax-Wechselrichter nahtlos in CANTAO. Es ruft zyklisch Messwerte über die Solax-Cloud-API ab, normalisiert
+sie in ein einheitliches Schema und stellt sie innerhalb von Contao als Datensätze sowie als Metrikquelle für CANTAO-Dashboards
+bereit. Ein separates Python- oder CLI-Tool wird nicht mehr benötigt – sämtliche Abläufe finden innerhalb des Contao-Ökosystems
+statt.
 
-## Funktionen
+## Funktionsumfang
 
 - Unterstützung der Solax Cloud API (v1 und v2)
-- Automatische Normalisierung der Messwerte in ein einheitliches Datenmodell
-- Konfigurierbare Transformationen zur Abbildung auf CANTAO-Metriken
-- CLI-Tool zum Abrufen oder direkten Weiterleiten der Daten an eine CANTAO-Instanz
-- Robuste Fehlerbehandlung samt Logging
-- Dokumentierte Schritt-für-Schritt-Anleitung für die Einbindung in der CANTAO-Oberfläche
-- Optionales Web-Dashboard mit integriertem HTTP-Server zur Visualisierung und zum Filtern der Metriken
-
-## Mögliche Entitäten
-
-Das Add-on normalisiert Solax-Felder in metrische Schlüssel, die in CANTAO als Entitäten erscheinen. Die konkrete Auswahl hängt vom jeweiligen Wechselrichter und Firmware-Stand ab. Typische Felder sind:
-
-| Solax-Feld          | Standard-Metrikschlüssel      | Beschreibung                                  |
-|---------------------|-------------------------------|-----------------------------------------------|
-| `acpower`           | `solax.acpower`               | Aktuelle AC-Ausgangsleistung in Watt          |
-| `yieldtoday`        | `solax.yieldtoday`            | Tagesertrag in kWh                            |
-| `yieldtotal`        | `solax.yieldtotal`            | Gesamtertrag in kWh                           |
-| `feedinpower`       | `solax.feedinpower`           | Einspeiseleistung Richtung Netz in Watt       |
-| `feedinenergy`      | `solax.feedinenergy`          | Gesamteinspeisung in kWh                      |
-| `consumeenergy`     | `solax.consumeenergy`         | Gesamtverbrauch in kWh                        |
-| `consumepower`      | `solax.consumepower`          | Aktuelle Leistungsaufnahme in Watt            |
-| `soc`               | `solax.soc`                   | Ladezustand des Speichers in Prozent          |
-| `batterypower`      | `solax.batterypower`          | Batterie-Leistungsfluss (Vorzeichen beachten) |
-| `pvpower1` / `pvpower2` | `solax.pvpower1` / `solax.pvpower2` | Eingangsleistung der PV-Strings in Watt |
-| `temperature`       | `solax.temperature`          | Gerätetemperatur in °C                        |
-| `gridvoltage`       | `solax.gridvoltage`           | Netzspannung in Volt                          |
-
-Über die Option `metric_mapping` in der Konfiguration können diese Schlüssel individuell auf bestehende CANTAO-Entitäten abgebildet werden, z. B. `"yieldtoday" = "energy.today"`.
+- Normalisierung der gelieferten Rohdaten in strukturierte Metriken
+- Speicherung der Werte in der Contao-Tabelle `tl_solax_metric`
+- Konfigurierbares Präfix und Mapping für individuelle CANTAO-Bezeichnungen
+- Registrierter Cron-Job `SolaxSyncCron`, der die Daten automatisiert synchronisiert
+- Backend-Integration über DCA, damit die Werte im Contao-Backend eingesehen werden können
 
 ## Installation
 
-### Contao-Integration
+### Über Composer
 
-Das Projekt wird als Composer-Paket `cantao/solax-bundle` ausgeliefert und liegt in diesem Repository ([404GamerNotFound/cantao_solax_add_on](https://github.com/404GamerNotFound/cantao_solax_add_on)). Um das Bundle lokal zu installieren oder zu aktualisieren, gehen Sie wie folgt vor:
-
-1. Klonen oder aktualisieren Sie das Repository auf Ihrem lokalen Rechner bzw. Deployment-Server:
-
-   ```bash
-   # Erstinstallation
-   git clone https://github.com/404GamerNotFound/cantao_solax_add_on.git
-   cd cantao_solax_add_on
-
-   # Update einer bestehenden Kopie
-   git pull origin main
-   ```
-
-2. Führen Sie das Installationsskript aus dem Repository aus, um Ihr Contao-Projekt automatisiert zu konfigurieren (optional, aber empfohlen):
-
-   ```bash
-   ./scripts/install-contao.sh --project-dir /pfad/zu/ihrem/contao-projekt
-   ```
-
-   Das Skript erledigt – sofern möglich – `composer require`, ruft anschließend `contao:migrate` auf und ergänzt einen vorkonfigurierten `cantao_solax`-Block in Ihrer `config/config.yml`. Über `--dry-run` können Sie den Ablauf zunächst ohne Änderungen testen, `--skip-composer` überspringt den Composer-Schritt.
-
-   > Hinweis: Das Skript erwartet, dass Composer Zugriff auf dieses Repository hat. Stellen Sie sicher, dass Sie entweder über SSH (deploy keys) oder HTTPS authentifiziert sind.
-
-3. Möchten Sie die Schritte manuell durchführen, binden Sie das Bundle als VCS-Quelle in Ihrem Contao-Projekt ein und installieren Sie es anschließend über Composer:
-
-   ```bash
-   cd /pfad/zu/ihrem/contao-projekt
-   composer config repositories.cantao-solax vcs https://github.com/404GamerNotFound/cantao_solax_add_on.git
-   composer require cantao/solax-bundle:dev-main
-   ```
-
-   Bei bestehenden Installationen genügt künftig `composer update cantao/solax-bundle`, um neue Versionen einzuspielen.
-
-4. Führen Sie den Contao Manager oder `vendor/bin/contao-console contao:migrate` aus, damit die Tabelle `tl_solax_metric` angelegt wird.
-
-5. Hinterlegen Sie die Solax-Zugangsdaten in Ihrer Projektkonfiguration, z. B. in `config/config.yml`:
-
-   ```yaml
-   cantao_solax:
-     solax:
-       base_url: 'https://www.solaxcloud.com:9443'
-       api_version: 'v1'
-       api_key: '%env(SOLAX_API_KEY)%'
-       serial_number: '%env(SOLAX_SERIAL)%'
-       site_id: '%env(string:SOLAX_SITE_ID)%'
-       timeout: 10
-     cantao:
-       metric_prefix: 'solax'
-       metric_mapping:
-         yieldtoday: 'energy.today'
-         yieldtotal: 'energy.total'
-     storage:
-       table: 'tl_solax_metric'
-     cron:
-       interval: 'hourly' # möglich sind z. B. minutely, hourly, daily
-   ```
-
-6. Nach erfolgreicher Konfiguration steht unter **System → Cron** ein Job „SolaxSyncCron“ zur Verfügung. Dieser ruft in dem angegebenen Intervall die Werte ab und schreibt sie in die Tabelle `tl_solax_metric`. Die Datensätze lassen sich über das Backend (DCA `tl_solax_metric`) einsehen und weiterverarbeiten.
-
-### Python-Add-on
+Fügen Sie das Bundle Ihrem Contao-Projekt als VCS-Abhängigkeit hinzu und installieren Sie es per Composer:
 
 ```bash
-pip install .
+composer config repositories.cantao-solax vcs https://github.com/404GamerNotFound/cantao_solax_add_on.git
+composer require cantao/solax-bundle:dev-main
 ```
 
-Alternativ kann das Paket im Entwicklungsmodus installiert werden:
+Führen Sie anschließend die Contao-Migrationen aus, damit die benötigte Datenbanktabelle angelegt wird:
 
 ```bash
-pip install -e .
+vendor/bin/contao-console contao:migrate --no-interaction
 ```
+
+### Automatisiertes Installationsskript (optional)
+
+Alternativ kann das mitgelieferte Skript `scripts/install-contao.sh` die obigen Schritte ausführen. Beispiel:
+
+```bash
+./scripts/install-contao.sh --project-dir /pfad/zu/contao
+```
+
+Das Skript führt – sofern nicht über Parameter deaktiviert – `composer require`, `contao:migrate` und ergänzt eine
+Basis-Konfiguration in `config/config.yml`.
 
 ## Konfiguration
 
-Die Konfiguration erfolgt über eine TOML-Datei. Eine Vorlage befindet sich in `examples/config.example.toml`.
+Das Bundle liest seine Einstellungen aus der Contao-Konfiguration (z. B. `config/config.yml`). Ein Minimalbeispiel lautet:
 
-```toml
-[solax]
-base_url = "https://www.solaxcloud.com:9443"
-api_version = "v1"
-api_key = "<API_KEY>"
-serial_number = "<INVERTER_SERIAL>"
-site_id = "<PLANT_ID>"
-timeout = 10
-
-[cantao]
-base_url = "https://cantao.example.com"
-api_token = "<CANTAO_TOKEN>"
-metric_prefix = "solax"
-metric_mapping = { "yieldtoday" = "energy.today" }
+```yaml
+cantao_solax:
+  solax:
+    base_url: 'https://www.solaxcloud.com:9443'
+    api_version: 'v1'
+    api_key: '%env(SOLAX_API_KEY)%'
+    serial_number: '%env(SOLAX_SERIAL)%'
+    site_id: '%env(string:SOLAX_SITE_ID)%'
+    timeout: 10
+  cantao:
+    metric_prefix: 'solax'
+    metric_mapping:
+      yieldtoday: 'energy.today'
+      yieldtotal: 'energy.total'
+  storage:
+    table: 'tl_solax_metric'
+  cron:
+    interval: 'hourly'
 ```
 
-## Verwendung
+Sensitive Werte sollten – wie im Beispiel – über Umgebungsvariablen eingebunden werden. Die Option `metric_mapping` erlaubt es,
+die automatisch generierten Schlüssel auf projektspezifische Namen abzubilden.
 
-### Daten abrufen
+## Betrieb
 
-```bash
-cantao-solax --config /pfad/zur/config.toml fetch
-```
+Nach erfolgreicher Installation registriert das Bundle den Cron-Job `SolaxSyncCron`. Dieser ruft im konfigurierten Intervall die
+Solax-Cloud ab, normalisiert die Daten und schreibt sie in die Tabelle `tl_solax_metric`. Über den Contao-Backendbereich lassen sich
+die Datensätze prüfen und bei Bedarf weiterverarbeiten.
 
-### Daten an CANTAO senden
+Für die Visualisierung innerhalb von CANTAO wählen Sie in Ihren Dashboards die Integration „Solax“ aus und fügen die gewünschten
+Metriken hinzu. Die standardmäßig gelieferten Kennzahlen umfassen unter anderem AC-Leistung, Tages- und Gesamtertrag, Einspeisung,
+Verbrauch, Ladezustand und PV-String-Leistungen.
 
-```bash
-cantao-solax --config /pfad/zur/config.toml push
-```
+## Anpassungen
 
-Der Push-Befehl sendet die normalisierten Daten als JSON-Load an die konfigurierte CANTAO-Instanz. Auf CANTAO-Seite wird ein generischer `/api/v1/metrics`-Endpunkt angenommen.
-
-### Dashboard starten
-
-Ein interaktives UI-Dashboard kann direkt über die CLI gestartet werden. Dieses Dashboard visualisiert Highlight-Kennzahlen, erlaubt das Filtern nach Metrikschlüsseln, blendet Rohdaten ein und stellt einen JSON-Endpunkt für Automatisierungen bereit.
-
-```bash
-cantao-solax --config /pfad/zur/config.toml serve --open-browser
-```
-
-Für Demos ohne API-Zugriff steht eine integrierte Datenquelle bereit:
-
-```bash
-cantao-solax --config /irgendein/pfad serve --demo-data
-```
-
-Im Browser ist das Dashboard anschließend unter `http://127.0.0.1:5000/` erreichbar.
-
-## Integration in CANTAO
-
-Eine ausführliche Schritt-für-Schritt-Anleitung zur Einrichtung (inkl. UI-Navigation, Token-Hinterlegung und Dashboard-Konfiguration) finden Sie in [docs/integration-guide.md](docs/integration-guide.md). Die wichtigsten Schritte lauten zusammengefasst:
-
-1. Add-on installieren und Konfiguration anpassen.
-2. Mit `cantao-solax fetch` einen Testabruf durchführen.
-3. Einen periodischen `push`-Job (z. B. Cron) einrichten.
-4. In der CANTAO-Oberfläche unter **Einstellungen → Integrationen** eine neue externe Metrikquelle anlegen, das API-Token hinterlegen und gewünschte Widgets konfigurieren.
+- **Cron-Intervall:** Das Intervall kann in der Konfiguration (`cantao_solax.cron.interval`) angepasst werden.
+- **Eigene Mappings:** Über `cantao_solax.cantao.metric_mapping` lassen sich Rohschlüssel auf bestehende CANTAO-Entitäten abbilden.
+- **Logging:** Das Bundle nutzt den Symfony-Logger. Stellen Sie sicher, dass dieser im Projekt korrekt konfiguriert ist, um Fehler
+  beim Abruf oder der Speicherung nachvollziehen zu können.
 
 ## Entwicklung
 
-- Tests ausführen: `pytest`
-- Linting (optional): `ruff check src`
-
-## Weiterführende Informationen
-
-- Änderungsverlauf: siehe [CHANGELOG.md](CHANGELOG.md)
-- Ausführliche Integrationsbeschreibung: [docs/integration-guide.md](docs/integration-guide.md)
+- Composer-Abhängigkeiten installieren: `composer install`
+- Statische Analyse (optional): `composer run-script lint`
 
 ## Lizenz
 
