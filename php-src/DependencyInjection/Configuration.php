@@ -24,6 +24,7 @@ class Configuration implements ConfigurationInterface
                             ->ifNotInArray(['v1', 'v2'])
                             ->thenInvalid('Solax API version must be either "v1" or "v2".')
                         ->end()
+                        ->end()
                         ->scalarNode('api_key')->defaultNull()->end()
                         ->scalarNode('serial_number')->defaultNull()->end()
                         ->scalarNode('site_id')->defaultNull()->end()
