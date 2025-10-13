@@ -10,6 +10,7 @@ Dieses Projekt liefert ein Python-Add-on, das Messwerte von Solax-Wechselrichter
 - CLI-Tool zum Abrufen oder direkten Weiterleiten der Daten an eine CANTAO-Instanz
 - Robuste Fehlerbehandlung samt Logging
 - Dokumentierte Schritt-für-Schritt-Anleitung für die Einbindung in der CANTAO-Oberfläche
+- Optionales Web-Dashboard mit integriertem HTTP-Server zur Visualisierung und zum Filtern der Metriken
 
 ## Mögliche Entitäten
 
@@ -119,6 +120,22 @@ cantao-solax --config /pfad/zur/config.toml push
 ```
 
 Der Push-Befehl sendet die normalisierten Daten als JSON-Load an die konfigurierte CANTAO-Instanz. Auf CANTAO-Seite wird ein generischer `/api/v1/metrics`-Endpunkt angenommen.
+
+### Dashboard starten
+
+Ein interaktives UI-Dashboard kann direkt über die CLI gestartet werden. Dieses Dashboard visualisiert Highlight-Kennzahlen, erlaubt das Filtern nach Metrikschlüsseln, blendet Rohdaten ein und stellt einen JSON-Endpunkt für Automatisierungen bereit.
+
+```bash
+cantao-solax --config /pfad/zur/config.toml serve --open-browser
+```
+
+Für Demos ohne API-Zugriff steht eine integrierte Datenquelle bereit:
+
+```bash
+cantao-solax --config /irgendein/pfad serve --demo-data
+```
+
+Im Browser ist das Dashboard anschließend unter `http://127.0.0.1:5000/` erreichbar.
 
 ## Integration in CANTAO
 
