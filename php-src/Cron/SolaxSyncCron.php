@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Cantao\SolaxBundle\Cron;
 
 use Cantao\SolaxBundle\Repository\MetricRepository;
+use Cantao\SolaxBundle\Service\FakeDataGenerator;
 use Cantao\SolaxBundle\Service\MetricNormalizer;
 use Cantao\SolaxBundle\Service\SolaxClient;
+use Cantao\SolaxBundle\Service\SolaxConfigurationProvider;
 use Psr\Log\LoggerInterface;
 
 class SolaxSyncCron
@@ -16,14 +18,27 @@ class SolaxSyncCron
         private readonly MetricNormalizer $normalizer,
         private readonly MetricRepository $repository,
         private readonly LoggerInterface $logger,
-        private string $interval
+        private string $interval,
+        private readonly FakeDataGenerator $fakeDataGenerator,
+        private readonly SolaxConfigurationProvider $configurationProvider
     ) {
     }
 
     public function __invoke(): void
     {
         try {
-            $raw = $this->solaxClient->fetchRealtimeData();
+            if ($this->configurationProvider->isFakeModeEnabled()) {
+                $raw = $this->fakeDataGenerator->generate();
+                $this->logger->info('Fake data mode enabled – using simulated Solax metrics.');
+            } else {
+                if (!$this->configurationProvider->hasCredentials()) {
+                    $this->logger->warning('Solax credentials are missing and fake data mode is disabled. Skipping synchronisation.');
+
+                    return;
+                }
+
+                $raw = $this->solaxClient->fetchRealtimeData();
+            }
             $metrics = $this->normalizer->normalise($raw);
             if ($metrics === []) {
                 $this->logger->notice('Solax API responded without usable metric values. Nothing was written to the database.');

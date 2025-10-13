@@ -9,20 +9,13 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class SolaxClient
 {
-    private array $config;
-    private readonly int $retryCount;
-    private readonly int $retryDelayMs;
-
     private const MAX_BACKOFF_DELAY_MS = 30000;
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly LoggerInterface $logger,
-        array $config
+        private readonly SolaxConfigurationProvider $configurationProvider
     ) {
-        $this->config = $config;
-        $this->retryCount = max(0, (int) ($this->config['retry_count'] ?? 2));
-        $this->retryDelayMs = max(100, (int) ($this->config['retry_delay'] ?? 1000));
     }
 
     /**
@@ -30,16 +23,20 @@ class SolaxClient
      */
     public function fetchRealtimeData(): array
     {
+        $config = $this->configurationProvider->getSolaxConfig();
+        $this->assertCredentials($config);
+
+        $retryCount = max(0, (int) ($config['retry_count'] ?? 2));
+        $retryDelayMs = max(100, (int) ($config['retry_delay'] ?? 1000));
         $endpoint = 'getRealtimeInfo';
-        $url = rtrim((string) $this->config['base_url'], '/') . '/api/' . trim((string) $this->config['api_version'], '/') . '/' . $endpoint;
+        $url = rtrim((string) ($config['base_url'] ?? ''), '/') . '/api/' . trim((string) ($config['api_version'] ?? 'v1'), '/') . '/' . $endpoint;
 
-        $options = $this->buildRequestOptions();
-
-        $attempts = $this->retryCount + 1;
+        $attempts = $retryCount + 1;
         $lastException = null;
 
         for ($attempt = 1; $attempt <= $attempts; ++$attempt) {
             try {
+                $options = $this->buildRequestOptions($config);
                 $data = $this->httpClient->request('GET', $url, $options)->toArray(false);
 
                 return $this->extractPayload($data);
@@ -56,7 +53,7 @@ class SolaxClient
                     'message' => $exception->getMessage(),
                 ]);
 
-                $this->waitBeforeRetry($attempt);
+                $this->waitBeforeRetry($attempt, $retryDelayMs);
             }
         }
 
@@ -71,21 +68,21 @@ class SolaxClient
     /**
      * @return array<string, string>
      */
-    private function buildQueryParameters(): array
+    private function buildQueryParameters(array $config): array
     {
         $params = [
-            'sn' => $this->config['serial_number'],
+            'sn' => $config['serial_number'],
         ];
 
-        if (($this->config['api_version'] ?? 'v1') === 'v1') {
-            $params['tokenId'] = $this->config['api_key'];
-            if (!empty($this->config['site_id'])) {
-                $params['plantId'] = $this->config['site_id'];
+        if (($config['api_version'] ?? 'v1') === 'v1') {
+            $params['tokenId'] = $config['api_key'];
+            if (!empty($config['site_id'])) {
+                $params['plantId'] = $config['site_id'];
             }
         } else {
-            $params['accessToken'] = $this->config['api_key'];
-            if (!empty($this->config['site_id'])) {
-                $params['uid'] = $this->config['site_id'];
+            $params['accessToken'] = $config['api_key'];
+            if (!empty($config['site_id'])) {
+                $params['uid'] = $config['site_id'];
             }
         }
 
@@ -119,21 +116,31 @@ class SolaxClient
     /**
      * @return array<string, mixed>
      */
-    private function buildRequestOptions(): array
+    private function buildRequestOptions(array $config): array
     {
         return [
-            'query' => $this->buildQueryParameters(),
-            'timeout' => (int) ($this->config['timeout'] ?? 10),
+            'query' => $this->buildQueryParameters($config),
+            'timeout' => (int) ($config['timeout'] ?? 10),
             'headers' => [
                 'Accept' => 'application/json',
             ],
         ];
     }
 
-    private function waitBeforeRetry(int $attempt): void
+    private function waitBeforeRetry(int $attempt, int $retryDelayMs): void
     {
-        $delayMs = min($this->retryDelayMs * $attempt, self::MAX_BACKOFF_DELAY_MS);
+        $delayMs = min($retryDelayMs * $attempt, self::MAX_BACKOFF_DELAY_MS);
 
         usleep($delayMs * 1000);
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function assertCredentials(array $config): void
+    {
+        if (empty($config['api_key']) || empty($config['serial_number'])) {
+            throw new \RuntimeException('Solax credentials are not configured.');
+        }
     }
 }
