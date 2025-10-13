@@ -40,11 +40,16 @@ innerhalb des PHP- und Contao-Stacks; zusätzliche Python-Tools sind nicht erfor
        serial_number: '%env(SOLAX_SERIAL)%'
        site_id: '%env(string:SOLAX_SITE_ID)%'
        timeout: 10
+       retry_count: 2
+       retry_delay: 1000
      cantao:
        metric_prefix: 'solax'
        metric_mapping:
          yieldtoday: 'energy.today'
          yieldtotal: 'energy.total'
+       ignore_fields:
+         - inverterSN
+       decimal_precision: 2
      storage:
        table: 'tl_solax_metric'
      cron:
@@ -77,7 +82,10 @@ innerhalb des PHP- und Contao-Stacks; zusätzliche Python-Tools sind nicht erfor
 ## 6. Erweiterte Anpassungen
 
 - Nutzen Sie `cantao_solax.cantao.metric_mapping`, um Rohschlüssel (z. B. `yieldtoday`) auf bestehende CANTAO-Entitäten abzubilden.
-- Über das Konfigurationsfeld `cantao_solax.cron.interval` lässt sich die Abruffrequenz erhöhen oder reduzieren.
+- Blenden Sie nicht benötigte Rohwerte mit `cantao_solax.cantao.ignore_fields` aus.
+- Über `cantao_solax.cantao.decimal_precision` steuern Sie die Rundung von Fließkommazahlen.
+- Das Konfigurationsfeld `cantao_solax.cron.interval` legt die Abruffrequenz fest.
+- Passen Sie bei instabiler Verbindung `cantao_solax.solax.retry_count` sowie `cantao_solax.solax.retry_delay` an.
 - Für zusätzliche Normalisierungslogik können Sie den Service `Cantao\SolaxBundle\Service\MetricNormalizer` erweitern
   (z. B. via Symfony-Dekoration).
 
