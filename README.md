@@ -39,7 +39,15 @@ Das Add-on normalisiert Solax-Felder in metrische Schlüssel, die in CANTAO als 
 
 Das Repository enthält nun ein vollwertiges Contao-Bundle (`cantao/solax-bundle`), das die komplette Kommunikation mit der Solax-Cloud innerhalb einer Contao-Instanz erledigt.
 
-1. Binden Sie das Bundle über Composer in Ihr Contao-Projekt ein:
+1. Nutzen Sie optional das Installationsskript `scripts/install-contao.sh`, um die folgenden Schritte automatisiert auszuführen:
+
+   ```bash
+   ./scripts/install-contao.sh --project-dir /pfad/zu/ihrem/contao-projekt
+   ```
+
+   Das Skript führt (sofern möglich) `composer require`, ruft anschließend `contao:migrate` auf und ergänzt einen vorkonfigurierten `cantao_solax`-Block in Ihrer `config/config.yml`. Per `--dry-run` lässt sich der Ablauf zunächst ohne Änderungen testen.
+
+2. Binden Sie das Bundle über Composer in Ihr Contao-Projekt ein:
 
    ```bash
    composer require cantao/solax-bundle:@dev
@@ -47,9 +55,9 @@ Das Repository enthält nun ein vollwertiges Contao-Bundle (`cantao/solax-bundle
 
    > Hinweis: Beim lokalen Entwickeln kann das Bundle auch per `path`-Repository eingebunden werden.
 
-2. Führen Sie den Contao Manager oder `vendor/bin/contao-console contao:migrate` aus, damit die Tabelle `tl_solax_metric` angelegt wird.
+3. Führen Sie den Contao Manager oder `vendor/bin/contao-console contao:migrate` aus, damit die Tabelle `tl_solax_metric` angelegt wird.
 
-3. Hinterlegen Sie die Solax-Zugangsdaten in Ihrer Projektkonfiguration, z. B. in `config/config.yml`:
+4. Hinterlegen Sie die Solax-Zugangsdaten in Ihrer Projektkonfiguration, z. B. in `config/config.yml`:
 
    ```yaml
    cantao_solax:
@@ -71,7 +79,7 @@ Das Repository enthält nun ein vollwertiges Contao-Bundle (`cantao/solax-bundle
        interval: 'hourly' # möglich sind z. B. minutely, hourly, daily
    ```
 
-4. Nach erfolgreicher Konfiguration steht unter **System → Cron** ein Job „SolaxSyncCron“ zur Verfügung. Dieser ruft in dem angegebenen Intervall die Werte ab und schreibt sie in die Tabelle `tl_solax_metric`. Die Datensätze lassen sich über das Backend (DCA `tl_solax_metric`) einsehen und weiterverarbeiten.
+5. Nach erfolgreicher Konfiguration steht unter **System → Cron** ein Job „SolaxSyncCron“ zur Verfügung. Dieser ruft in dem angegebenen Intervall die Werte ab und schreibt sie in die Tabelle `tl_solax_metric`. Die Datensätze lassen sich über das Backend (DCA `tl_solax_metric`) einsehen und weiterverarbeiten.
 
 ### Python-Add-on
 
