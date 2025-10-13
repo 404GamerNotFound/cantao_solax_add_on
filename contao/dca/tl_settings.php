@@ -97,22 +97,22 @@ $GLOBALS['TL_DCA']['tl_settings']['fields']['solax_api_version'] = [
 
 $GLOBALS['TL_DCA']['tl_settings']['fields']['solax_api_key'] = [
     'label' => &$GLOBALS['TL_LANG']['tl_settings']['solax_api_key'],
-    'inputType' => 'text',
-    'eval' => ['maxlength' => 255, 'tl_class' => 'w50'],
+    'inputType' => 'password',
+    'eval' => ['maxlength' => 255, 'tl_class' => 'w50', 'encrypt' => true, 'hideInput' => true, 'alwaysSave' => true],
     'sql' => "varchar(255) NOT NULL default ''",
 ];
 
 $GLOBALS['TL_DCA']['tl_settings']['fields']['solax_serial_number'] = [
     'label' => &$GLOBALS['TL_LANG']['tl_settings']['solax_serial_number'],
-    'inputType' => 'text',
-    'eval' => ['maxlength' => 255, 'tl_class' => 'w50'],
+    'inputType' => 'password',
+    'eval' => ['maxlength' => 255, 'tl_class' => 'w50', 'encrypt' => true, 'hideInput' => true, 'alwaysSave' => true],
     'sql' => "varchar(255) NOT NULL default ''",
 ];
 
 $GLOBALS['TL_DCA']['tl_settings']['fields']['solax_site_id'] = [
     'label' => &$GLOBALS['TL_LANG']['tl_settings']['solax_site_id'],
-    'inputType' => 'text',
-    'eval' => ['maxlength' => 255, 'tl_class' => 'w50'],
+    'inputType' => 'password',
+    'eval' => ['maxlength' => 255, 'tl_class' => 'w50', 'encrypt' => true, 'hideInput' => true, 'alwaysSave' => true],
     'sql' => "varchar(255) NOT NULL default ''",
 ];
 

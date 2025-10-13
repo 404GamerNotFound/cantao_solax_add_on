@@ -85,8 +85,9 @@ erhalten bleiben.
 - Im Abschnitt **Solax Fake-Daten** lässt sich ein Fake-Data-Modus aktivieren. Er simuliert PV-Werte anhand der aktuellen Uhrzeit,
   Sonnenauf- und -untergang sowie einer konfigurierbaren Wolkenwahrscheinlichkeit. Standort (Breiten- und Längengrad), Peakleistung
   und Grundlast können angepasst werden.
-- Im Abschnitt **Solax Zugangsdaten** werden die echten API-Zugangsdaten hinterlegt. Sobald gültige Anmeldedaten vorhanden sind und
-  der Fake-Data-Modus deaktiviert ist, ruft das Bundle automatisch Live-Daten aus der Solax-Cloud ab.
+- Im Abschnitt **Solax Zugangsdaten** werden die echten API-Zugangsdaten hinterlegt. Die Felder für API-Schlüssel, Seriennummer und
+  UID/Plant-ID werden verschlüsselt gespeichert und lassen sich ohne Konfigurationsdateien direkt im Backend pflegen. Sobald gültige
+  Anmeldedaten vorhanden sind und der Fake-Data-Modus deaktiviert ist, ruft das Bundle automatisch Live-Daten aus der Solax-Cloud ab.
 
 Ohne aktivierten Fake-Data-Modus und ohne hinterlegte Zugangsdaten überspringt der Cronjob die Synchronisation und protokolliert
 einen Hinweis im System-Log.

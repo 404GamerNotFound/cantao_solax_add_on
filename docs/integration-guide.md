@@ -63,8 +63,10 @@ innerhalb des PHP- und Contao-Stacks; zusätzliche Python-Tools sind nicht erfor
 - In **System → Einstellungen → Solax Fake-Daten** aktivieren Sie bei Bedarf den Fake-Data-Modus und passen Standort,
   Peakleistung sowie Wolkenvariabilität an. Die simulierten Werte orientieren sich an Sonnenauf- und -untergang sowie
   einer einfachen Wolkensimulation.
-- Unter **System → Einstellungen → Solax Zugangsdaten** tragen Sie die echten API-Zugangsdaten ein. Sobald diese vollständig
-  sind und der Fake-Data-Modus deaktiviert ist, verwendet der Cronjob automatisch Live-Daten der Solax-Cloud.
+- Unter **System → Einstellungen → Solax Zugangsdaten** tragen Sie die echten API-Zugangsdaten ein. API-Key, Seriennummer und
+  Plant-ID/UID werden dabei verschlüsselt gespeichert, sodass keine sensiblen Werte in Konfigurationsdateien landen. Sobald die
+  Zugangsdaten vollständig sind und der Fake-Data-Modus deaktiviert ist, verwendet der Cronjob automatisch Live-Daten der
+  Solax-Cloud.
 - Sind weder Zugangsdaten hinterlegt noch der Fake-Data-Modus aktiv, protokolliert der Cronjob einen entsprechenden Hinweis und
   überspringt den Lauf.
 

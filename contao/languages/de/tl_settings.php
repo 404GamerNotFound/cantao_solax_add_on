@@ -23,9 +23,9 @@ $GLOBALS['TL_LANG']['tl_settings']['solax_fake_household_load'] = ['Grundlast Ha
 
 $GLOBALS['TL_LANG']['tl_settings']['solax_base_url'] = ['Solax API-Basis-URL', 'Basisadresse der Solax-Cloud-API.'];
 $GLOBALS['TL_LANG']['tl_settings']['solax_api_version'] = ['API-Version', 'Auswahl zwischen Solax Cloud API v1 und v2.'];
-$GLOBALS['TL_LANG']['tl_settings']['solax_api_key'] = ['API-Schlüssel', 'Persönlicher API-Schlüssel für Ihr Solax-Cloud-Konto.'];
-$GLOBALS['TL_LANG']['tl_settings']['solax_serial_number'] = ['Wechselrichter-Seriennummer', 'Seriennummer des Solax-Wechselrichters.'];
-$GLOBALS['TL_LANG']['tl_settings']['solax_site_id'] = ['Anlagen-/UID', 'Optionale Anlagen-ID bzw. UID, abhängig von der API-Version.'];
+$GLOBALS['TL_LANG']['tl_settings']['solax_api_key'] = ['API-Schlüssel', 'Persönlicher API-Schlüssel für Ihr Solax-Cloud-Konto (wird verschlüsselt gespeichert).'];
+$GLOBALS['TL_LANG']['tl_settings']['solax_serial_number'] = ['Wechselrichter-Seriennummer', 'Seriennummer des Solax-Wechselrichters (wird verschlüsselt gespeichert).'];
+$GLOBALS['TL_LANG']['tl_settings']['solax_site_id'] = ['Anlagen-/UID', 'Optionale Anlagen-ID bzw. UID (wird verschlüsselt gespeichert).'];
 $GLOBALS['TL_LANG']['tl_settings']['solax_timeout'] = ['Timeout (s)', 'Maximale Wartezeit in Sekunden auf eine Antwort der Solax-API.'];
 $GLOBALS['TL_LANG']['tl_settings']['solax_retry_count'] = ['Anzahl Wiederholungen', 'Wie oft fehlgeschlagene Solax-Anfragen erneut versucht werden.'];
 $GLOBALS['TL_LANG']['tl_settings']['solax_retry_delay'] = ['Wartezeit zwischen Versuchen (ms)', 'Pause in Millisekunden zwischen den Wiederholungsversuchen.'];
