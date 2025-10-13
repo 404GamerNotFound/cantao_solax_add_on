@@ -23,9 +23,9 @@ $GLOBALS['TL_LANG']['tl_settings']['solax_fake_household_load'] = ['Base househo
 
 $GLOBALS['TL_LANG']['tl_settings']['solax_base_url'] = ['Solax API base URL', 'Endpoint of the Solax Cloud API.'];
 $GLOBALS['TL_LANG']['tl_settings']['solax_api_version'] = ['API version', 'Choose between Solax Cloud API v1 or v2.'];
-$GLOBALS['TL_LANG']['tl_settings']['solax_api_key'] = ['API key', 'Personal API key for your Solax Cloud account.'];
-$GLOBALS['TL_LANG']['tl_settings']['solax_serial_number'] = ['Inverter serial number', 'Serial number of the Solax inverter.'];
-$GLOBALS['TL_LANG']['tl_settings']['solax_site_id'] = ['Site/Plant ID or UID', 'Optional plant identifier required by some API versions.'];
+$GLOBALS['TL_LANG']['tl_settings']['solax_api_key'] = ['API key', 'Personal API key for your Solax Cloud account (stored encrypted).'];
+$GLOBALS['TL_LANG']['tl_settings']['solax_serial_number'] = ['Inverter serial number', 'Serial number of the Solax inverter (stored encrypted).'];
+$GLOBALS['TL_LANG']['tl_settings']['solax_site_id'] = ['Site/Plant ID or UID', 'Optional plant identifier required by some API versions (stored encrypted).'];
 $GLOBALS['TL_LANG']['tl_settings']['solax_timeout'] = ['Timeout (s)', 'Maximum time in seconds to wait for the Solax API response.'];
 $GLOBALS['TL_LANG']['tl_settings']['solax_retry_count'] = ['Retry count', 'Number of retries after a failed Solax API request.'];
 $GLOBALS['TL_LANG']['tl_settings']['solax_retry_delay'] = ['Retry delay (ms)', 'Delay in milliseconds between retry attempts.'];

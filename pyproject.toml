@@ -1,0 +1,4 @@
+[build-system]
+requires = []
+build-backend = "cantao_build_backend"
+backend-path = ["."]
