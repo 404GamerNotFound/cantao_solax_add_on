@@ -37,27 +37,42 @@ Das Add-on normalisiert Solax-Felder in metrische Schlüssel, die in CANTAO als 
 
 ### Contao-Integration
 
-Das Repository enthält nun ein vollwertiges Contao-Bundle (`cantao/solax-bundle`), das die komplette Kommunikation mit der Solax-Cloud innerhalb einer Contao-Instanz erledigt.
+Das Projekt wird als Composer-Paket `cantao/solax-bundle` ausgeliefert und liegt in diesem Repository ([404GamerNotFound/cantao_solax_add_on](https://github.com/404GamerNotFound/cantao_solax_add_on)). Um das Bundle lokal zu installieren oder zu aktualisieren, gehen Sie wie folgt vor:
 
-1. Nutzen Sie optional das Installationsskript `scripts/install-contao.sh`, um die folgenden Schritte automatisiert auszuführen:
+1. Klonen oder aktualisieren Sie das Repository auf Ihrem lokalen Rechner bzw. Deployment-Server:
+
+   ```bash
+   # Erstinstallation
+   git clone https://github.com/404GamerNotFound/cantao_solax_add_on.git
+   cd cantao_solax_add_on
+
+   # Update einer bestehenden Kopie
+   git pull origin main
+   ```
+
+2. Führen Sie das Installationsskript aus dem Repository aus, um Ihr Contao-Projekt automatisiert zu konfigurieren (optional, aber empfohlen):
 
    ```bash
    ./scripts/install-contao.sh --project-dir /pfad/zu/ihrem/contao-projekt
    ```
 
-   Das Skript führt (sofern möglich) `composer require`, ruft anschließend `contao:migrate` auf und ergänzt einen vorkonfigurierten `cantao_solax`-Block in Ihrer `config/config.yml`. Per `--dry-run` lässt sich der Ablauf zunächst ohne Änderungen testen.
+   Das Skript erledigt – sofern möglich – `composer require`, ruft anschließend `contao:migrate` auf und ergänzt einen vorkonfigurierten `cantao_solax`-Block in Ihrer `config/config.yml`. Über `--dry-run` können Sie den Ablauf zunächst ohne Änderungen testen, `--skip-composer` überspringt den Composer-Schritt.
 
-2. Binden Sie das Bundle über Composer in Ihr Contao-Projekt ein:
+   > Hinweis: Das Skript erwartet, dass Composer Zugriff auf dieses Repository hat. Stellen Sie sicher, dass Sie entweder über SSH (deploy keys) oder HTTPS authentifiziert sind.
+
+3. Möchten Sie die Schritte manuell durchführen, binden Sie das Bundle als VCS-Quelle in Ihrem Contao-Projekt ein und installieren Sie es anschließend über Composer:
 
    ```bash
-   composer require cantao/solax-bundle:@dev
+   cd /pfad/zu/ihrem/contao-projekt
+   composer config repositories.cantao-solax vcs https://github.com/404GamerNotFound/cantao_solax_add_on.git
+   composer require cantao/solax-bundle:dev-main
    ```
 
-   > Hinweis: Beim lokalen Entwickeln kann das Bundle auch per `path`-Repository eingebunden werden.
+   Bei bestehenden Installationen genügt künftig `composer update cantao/solax-bundle`, um neue Versionen einzuspielen.
 
-3. Führen Sie den Contao Manager oder `vendor/bin/contao-console contao:migrate` aus, damit die Tabelle `tl_solax_metric` angelegt wird.
+4. Führen Sie den Contao Manager oder `vendor/bin/contao-console contao:migrate` aus, damit die Tabelle `tl_solax_metric` angelegt wird.
 
-4. Hinterlegen Sie die Solax-Zugangsdaten in Ihrer Projektkonfiguration, z. B. in `config/config.yml`:
+5. Hinterlegen Sie die Solax-Zugangsdaten in Ihrer Projektkonfiguration, z. B. in `config/config.yml`:
 
    ```yaml
    cantao_solax:
@@ -79,7 +94,7 @@ Das Repository enthält nun ein vollwertiges Contao-Bundle (`cantao/solax-bundle
        interval: 'hourly' # möglich sind z. B. minutely, hourly, daily
    ```
 
-5. Nach erfolgreicher Konfiguration steht unter **System → Cron** ein Job „SolaxSyncCron“ zur Verfügung. Dieser ruft in dem angegebenen Intervall die Werte ab und schreibt sie in die Tabelle `tl_solax_metric`. Die Datensätze lassen sich über das Backend (DCA `tl_solax_metric`) einsehen und weiterverarbeiten.
+6. Nach erfolgreicher Konfiguration steht unter **System → Cron** ein Job „SolaxSyncCron“ zur Verfügung. Dieser ruft in dem angegebenen Intervall die Werte ab und schreibt sie in die Tabelle `tl_solax_metric`. Die Datensätze lassen sich über das Backend (DCA `tl_solax_metric`) einsehen und weiterverarbeiten.
 
 ### Python-Add-on
 
