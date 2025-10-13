@@ -13,7 +13,7 @@ use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
-use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
+use Symfony\Component\DependencyInjection\Reference;
 
 class CantaoSolaxExtension extends Extension
 {
@@ -34,7 +34,7 @@ class CantaoSolaxExtension extends Extension
         $loader->load('services.php');
 
         $container->getDefinition(SolaxClient::class)
-            ->setArgument('$configurationProvider', service(SolaxConfigurationProvider::class));
+            ->setArgument('$configurationProvider', new Reference(SolaxConfigurationProvider::class));
 
         $container->getDefinition(SolaxConfigurationProvider::class)
             ->setArgument('$solaxDefaults', '%cantao_solax.solax_config%')
