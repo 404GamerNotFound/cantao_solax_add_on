@@ -40,6 +40,29 @@ error() {
   exit 1
 }
 
+has_database_configuration() {
+  if [[ -n "${DATABASE_URL:-}" ]]; then
+    return 0
+  fi
+
+  local candidates=(".env.local" ".env" "config/config.yml" "config/config.yaml")
+  local file
+
+  for file in "${candidates[@]}"; do
+    if [[ -f "${file}" ]]; then
+      if grep -Eq 'DATABASE_URL' "${file}"; then
+        return 0
+      fi
+
+      if grep -Eq '^\s*dbal:' "${file}"; then
+        return 0
+      fi
+    fi
+  done
+
+  return 1
+}
+
 run_cmd() {
   local cmd="$1"
   if [[ ${DRY_RUN} -eq 1 ]]; then
@@ -114,6 +137,10 @@ fi
 if [[ ${DRY_RUN} -eq 0 ]]; then
   if [[ ! -x "${CONSOLE_BIN}" ]]; then
     warn "Die Contao-Konsole konnte nicht gefunden oder ausgeführt werden. Überspringe Datenbankmigration."
+  elif ! has_database_configuration; then
+    warn "Es wurde keine Datenbankkonfiguration (DATABASE_URL oder Doctrine-Block) gefunden. Überspringe contao:migrate."
+    warn "Bitte konfigurieren Sie Ihre Datenbank (z. B. über vendor/bin/contao-console contao:install) und führen Sie"
+    warn "anschließend 'contao:migrate' manuell aus."
   else
     log "Führe Contao-Migrationen aus"
     run_cmd "${CONSOLE_BIN} contao:migrate --no-interaction"

@@ -27,6 +27,14 @@ composer config repositories.cantao-solax vcs https://github.com/404GamerNotFoun
 composer require cantao/solax-bundle:dev-main
 ```
 
+Stellen Sie vor dem Ausführen der Datenbankmigration sicher, dass Ihre Contao-Installation eine funktionierende
+`DATABASE_URL` konfiguriert hat (z. B. in `.env.local`). In frischen Projekten geschieht das üblicherweise über den
+Contao-Installationsassistenten (`vendor/bin/contao-console contao:install`) oder durch das Hinterlegen eines Eintrags wie
+
+```dotenv
+DATABASE_URL="mysql://user:passwort@127.0.0.1:3306/datenbankname"
+```
+
 Führen Sie anschließend die Contao-Migrationen aus, damit die benötigte Datenbanktabelle angelegt wird:
 
 ```bash
