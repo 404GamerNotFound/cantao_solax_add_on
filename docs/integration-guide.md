@@ -1,73 +1,90 @@
-# Integration des CANTAO Solax Add-ons
+# Integration des CANTAO Solax Bundles
 
-Diese Anleitung beschreibt die empfohlene Vorgehensweise, um das CANTAO Solax Add-on in einer bestehenden CANTAO-Installation nutzbar zu machen. Sie deckt sowohl die technische Vorbereitung als auch die erforderlichen Schritte in der Benutzeroberfläche ab.
+Diese Anleitung beschreibt, wie das Bundle in einem bestehenden Contao/CANTAO-Projekt eingerichtet wird. Alle Schritte erfolgen
+innerhalb des PHP- und Contao-Stacks; zusätzliche Python-Tools sind nicht erforderlich.
 
 ## Voraussetzungen
 
-- Zugriff auf ein Solax-Cloud-Konto mit aktivierter API-Schnittstelle
-- Seriennummer (SN) des Wechselrichters sowie optional die Plant-ID/UID
-- Ein generiertes Zugriffstoken für die CANTAO-Instanz mit Berechtigung zum Schreiben von Metriken
-- Python 3.11 oder neuer auf der Maschine, die die Daten abrufen soll
-- Netzwerkzugriff von dieser Maschine sowohl zur Solax Cloud als auch zu CANTAO
+- Contao 5 mit aktiviertem CANTAO-Modul
+- Zugriff auf die Solax-Cloud inklusive API-Key, Seriennummer und ggf. Plant-ID/UID
+- Systembenutzer mit Berechtigungen für `composer` und die Contao-Konsole
+- Netzwerkverbindung von Ihrem Server zur Solax-Cloud
 
-## 1. Add-on installieren
+## 1. Bundle installieren
 
-1. Repository klonen oder als Paket beziehen.
-2. Auf der Zielmaschine im Projektverzeichnis den folgenden Befehl ausführen:
+1. Ergänzen Sie Ihr `composer.json`-Projekt um das Repository (falls nicht bereits vorhanden):
    ```bash
-   pip install .
+   composer config repositories.cantao-solax vcs https://github.com/404GamerNotFound/cantao_solax_add_on.git
    ```
-   Alternativ kann mit `pip install -e .` eine Entwicklungsinstallation vorgenommen werden.
+2. Installieren Sie das Bundle:
+   ```bash
+   composer require cantao/solax-bundle:dev-main
+   ```
+3. Führen Sie anschließend die Contao-Migrationen aus, damit die Tabelle `tl_solax_metric` angelegt wird:
+   ```bash
+   vendor/bin/contao-console contao:migrate --no-interaction
+   ```
 
-## 2. Konfiguration erstellen
+> Tipp: Das Skript `scripts/install-contao.sh` automatisiert die obigen Schritte und ergänzt eine Basiskonfiguration.
 
-1. Kopieren Sie die Beispieldatei `examples/config.example.toml` in einen sicheren Speicherort, z. B. `/etc/cantao-solax/config.toml`.
-2. Passen Sie im Abschnitt `[solax]` die API-Parameter an (Token, Seriennummer, Plant-ID sowie optional die API-Version).
-3. Hinterlegen Sie im Abschnitt `[cantao]` die Basis-URL Ihrer CANTAO-Instanz und das API-Token. Optional können Sie das Prefix oder individuelle Mappings anpassen.
-4. Speichern Sie die Datei und stellen Sie sicher, dass nur vertrauenswürdige Personen Zugriff haben, da sie Geheimnisse enthält.
+## 2. Konfiguration hinterlegen
 
-## 3. Testabruf durchführen
+1. Öffnen oder erstellen Sie `config/config.yml` in Ihrem Contao-Projekt.
+2. Ergänzen Sie den Abschnitt `cantao_solax` mit Ihren Solax-Zugangsdaten:
+   ```yaml
+   cantao_solax:
+     solax:
+       base_url: 'https://www.solaxcloud.com:9443'
+       api_version: 'v1'
+       api_key: '%env(SOLAX_API_KEY)%'
+       serial_number: '%env(SOLAX_SERIAL)%'
+       site_id: '%env(string:SOLAX_SITE_ID)%'
+       timeout: 10
+     cantao:
+       metric_prefix: 'solax'
+       metric_mapping:
+         yieldtoday: 'energy.today'
+         yieldtotal: 'energy.total'
+     storage:
+       table: 'tl_solax_metric'
+     cron:
+       interval: 'hourly'
+   ```
+3. Hinterlegen Sie die referenzierten Umgebungsvariablen z. B. in Ihrer `.env.local` oder im Hosting-Panel.
+4. Räumen Sie Schreibzugriff nur vertrauenswürdigen Personen ein, da API-Schlüssel im Klartext vorliegen können.
 
-Führen Sie einen Probeabruf aus, um sicherzugehen, dass die Solax-Kommunikation funktioniert:
+## 3. Cronjob prüfen
 
-```bash
-cantao-solax --config /pfad/zur/config.toml fetch
-```
+- Im Contao-Backend erscheint unter **System → Cron** der Job **SolaxSyncCron**.
+- Stellen Sie sicher, dass die Contao-Cron-Infrastruktur korrekt eingerichtet ist (z. B. via Contao-Manager, System-Cron oder
+  Aufruf von `vendor/bin/contao-console contao:cron`).
+- Das konfigurierten Intervall (`hourly`, `minutely`, …) bestimmt die Abruffrequenz.
 
-Die Ausgabe sollte einen `raw`-Block mit den Originaldaten sowie einen `metrics`-Block mit normalisierten Kennzahlen enthalten.
+## 4. Daten validieren
 
-## 4. Automatischen Push in CANTAO einrichten
+1. Nach dem ersten Durchlauf sollten Datensätze in `System → Daten → Solax-Metriken` sichtbar sein.
+2. Prüfen Sie dort, ob Werte wie `solax.yieldtoday` oder `solax.acpower` erscheinen.
+3. Bei Fehlern finden Sie Hinweise im Contao/System-Log. Das Bundle protokolliert fehlgeschlagene Abrufe mit dem Symfony-Logger.
 
-Um Messwerte zyklisch an CANTAO zu übertragen, können Sie einen Cronjob oder einen Systemd-Timer verwenden. Beispiel für einen Cronjob im Fünf-Minuten-Takt:
+## 5. Dashboards konfigurieren
 
-```
-*/5 * * * * /usr/bin/cantao-solax --config /etc/cantao-solax/config.toml push >> /var/log/cantao-solax.log 2>&1
-```
+1. Öffnen Sie CANTAO und navigieren Sie zu Ihrem gewünschten Dashboard.
+2. Fügen Sie ein neues Widget hinzu (z. B. Zeitreihe oder Kennzahl) und wählen Sie als Datenquelle die Solax-Integration.
+3. Wählen Sie die gewünschten Metriken aus. Standardmäßig stehen u. a. AC-Leistung, Tages-/Gesamtertrag, Einspeisung,
+   Verbrauch, Ladezustand und PV-String-Leistungen bereit.
+4. Passen Sie Einheiten, Aggregationen und Visualisierung gemäß Ihren Anforderungen an.
 
-Achten Sie darauf, dass der Service-Benutzer Zugriff auf die Konfigurationsdatei hat.
+## 6. Erweiterte Anpassungen
 
-## 5. Integration in der CANTAO-Oberfläche
+- Nutzen Sie `cantao_solax.cantao.metric_mapping`, um Rohschlüssel (z. B. `yieldtoday`) auf bestehende CANTAO-Entitäten abzubilden.
+- Über das Konfigurationsfeld `cantao_solax.cron.interval` lässt sich die Abruffrequenz erhöhen oder reduzieren.
+- Für zusätzliche Normalisierungslogik können Sie den Service `Cantao\SolaxBundle\Service\MetricNormalizer` erweitern
+  (z. B. via Symfony-Dekoration).
 
-1. Melden Sie sich in Ihrer CANTAO-Instanz mit einem Konto an, das Integrationen verwalten darf.
-2. Navigieren Sie zu **Einstellungen → Integrationen → Eigene Datenquellen**.
-3. Klicken Sie auf **Integration hinzufügen** und wählen Sie den Typ **Externes Metrik-API** aus.
-4. Vergeben Sie einen aussagekräftigen Namen, z. B. „Solax Wechselrichter“.
-5. Hinterlegen Sie unter **API-Endpunkt** `/api/v1/metrics` (dies entspricht dem Standardendpunkt, den das Add-on anspricht).
-6. Aktivieren Sie die Option **Authentifizierung erforderlich** und tragen Sie dasselbe Token ein, das in der `config.toml` im Abschnitt `[cantao]` hinterlegt wurde.
-7. Optional: Legen Sie eine Kategorie oder Tags fest, um die Metriken später leichter zu finden.
-8. Speichern Sie die Integration. CANTAO bestätigt die erfolgreiche Registrierung mit einer Systemnachricht.
+## 7. Fehlerbehebung
 
-## 6. Dashboards und Widgets konfigurieren
+- **Authentifizierung fehlgeschlagen:** Prüfen Sie API-Key, Seriennummer und Plant-ID. Für API v2 ist die UID erforderlich.
+- **Keine Daten in CANTAO:** Stellen Sie sicher, dass der Cronjob ausgeführt wurde und die Tabelle `tl_solax_metric` Daten enthält.
+- **Zeitüberschreitungen:** Erhöhen Sie `cantao_solax.solax.timeout` oder prüfen Sie die Netzwerkverbindung.
 
-1. Öffnen Sie das gewünschte Dashboard oder erstellen Sie ein neues.
-2. Fügen Sie ein **Zeitreihen-Widget** hinzu und wählen Sie als Datenquelle die zuvor angelegte Solax-Integration aus.
-3. Wählen Sie die gewünschten Entitäten (siehe Abschnitt „Mögliche Entitäten“) aus und konfigurieren Sie Aggregationen und Anzeigeeinheiten.
-4. Wiederholen Sie den Vorgang für weitere Widgets, z. B. Kennzahlen-Kacheln oder Energiefluss-Diagramme.
-
-## 7. Überwachung und Fehlerbehebung
-
-- Prüfen Sie regelmäßig die Logdatei (`cantao-solax.log`), um Fehler frühzeitig zu erkennen.
-- Nutzen Sie in CANTAO die Ansicht **System → Integrationsstatus**, um einzusehen, wann zuletzt Metriken eingegangen sind.
-- Bei Authentifizierungsfehlern setzen Sie das Token in CANTAO neu und aktualisieren die `config.toml` entsprechend.
-
-Mit diesen Schritten ist die Integration vollständig eingerichtet. Weitere Anpassungen wie benutzerdefinierte Metriknamen oder zusätzliche Dashboards lassen sich jederzeit nachpflegen.
+Mit diesen Schritten ist das Bundle vollständig in Contao eingebunden und liefert kontinuierlich Messwerte an CANTAO.
