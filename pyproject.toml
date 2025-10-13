@@ -2,11 +2,3 @@
 requires = []
 build-backend = "cantao_build_backend"
 backend-path = ["."]
-
-[project]
-name = "cantao-solax-bundle"
-version = "0.0.0"
-description = "Placeholder package so CI 'pip install .' succeeds for the PHP bundle."
-readme = "README.md"
-license = {text = "MIT"}
-requires-python = ">=3.10"
