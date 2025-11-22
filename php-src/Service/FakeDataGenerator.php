@@ -18,10 +18,10 @@ class FakeDataGenerator
     /**
      * @return array<string, float|int>
      */
-    public function generate(): array
+    public function generate(?DateTimeImmutable $now = null): array
     {
         $settings = $this->configurationProvider->getFakeDataSettings();
-        $now = new DateTimeImmutable('now');
+        $now = $now ?? new DateTimeImmutable('now');
         $sunTimes = $this->resolveSunTimes($now, $settings['latitude'] ?? 0.0, $settings['longitude'] ?? 0.0);
         $timestamp = $now->getTimestamp();
         $sunrise = $sunTimes['sunrise'];
