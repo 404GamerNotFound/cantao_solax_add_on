@@ -5,9 +5,11 @@ declare(strict_types=1);
 use Cantao\SolaxBundle\Cron\SolaxSyncCron;
 use Cantao\SolaxBundle\Repository\MetricRepository;
 use Cantao\SolaxBundle\Service\FakeDataGenerator;
+use Cantao\SolaxBundle\Service\SolaxDataResolver;
 use Cantao\SolaxBundle\Service\MetricNormalizer;
 use Cantao\SolaxBundle\Service\SolaxClient;
 use Cantao\SolaxBundle\Service\SolaxConfigurationProvider;
+use Cantao\SolaxBundle\Controller\FrontendModule\SolaxMetricsController;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -49,6 +51,17 @@ return static function (ContainerConfigurator $configurator): void {
         ]);
 
     $services
+        ->set(SolaxDataResolver::class)
+        ->args([
+            service(SolaxConfigurationProvider::class),
+            service(FakeDataGenerator::class),
+            service(SolaxClient::class),
+            service(MetricNormalizer::class),
+            service(MetricRepository::class),
+            service(LoggerInterface::class),
+        ]);
+
+    $services
         ->set(MetricRepository::class)
         ->args([
             service('database_connection'),
@@ -67,4 +80,12 @@ return static function (ContainerConfigurator $configurator): void {
             service(SolaxConfigurationProvider::class),
         ])
         ->tag('contao.cronjob', ['interval' => 'hourly']);
+
+    $services
+        ->set(SolaxMetricsController::class)
+        ->args([
+            service(SolaxDataResolver::class),
+        ])
+        ->tag('controller.service_arguments')
+        ->tag('contao.frontend-module', ['category' => 'application', 'type' => SolaxMetricsController::TYPE]);
 };
