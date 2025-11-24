@@ -17,6 +17,40 @@ class MetricRepository
     }
 
     /**
+     * @return array{metrics: array<string, float|int|bool|string>, timestamp: int|null}
+     */
+    public function fetchAllMetrics(): array
+    {
+        $queryBuilder = $this->connection->createQueryBuilder();
+        $queryBuilder
+            ->select('metric_key', 'metric_value', 'tstamp')
+            ->from($this->tableName)
+            ->orderBy('metric_key');
+
+        $rows = $queryBuilder->fetchAllAssociative();
+
+        $metrics = [];
+        $timestamp = null;
+
+        foreach ($rows as $row) {
+            if (!isset($row['metric_key'], $row['metric_value'])) {
+                continue;
+            }
+
+            $metrics[(string) $row['metric_key']] = $this->castStoredValue((string) $row['metric_value']);
+
+            if (isset($row['tstamp'])) {
+                $timestamp = max((int) $row['tstamp'], $timestamp ?? 0);
+            }
+        }
+
+        return [
+            'metrics' => $metrics,
+            'timestamp' => $timestamp,
+        ];
+    }
+
+    /**
      * @param array<string, float|int|bool> $metrics
      */
     public function storeMetrics(array $metrics): MetricStoreResult
@@ -91,6 +125,21 @@ class MetricRepository
         }
 
         return $stringified;
+    }
+
+    private function castStoredValue(string $value): float|int|bool|string
+    {
+        if ($value === '1' || $value === '0') {
+            return $value === '1';
+        }
+
+        if (is_numeric($value)) {
+            $value = str_replace(',', '.', $value);
+
+            return preg_match('/^-?\d+$/', $value) === 1 ? (int) $value : (float) $value;
+        }
+
+        return $value;
     }
 
     /**

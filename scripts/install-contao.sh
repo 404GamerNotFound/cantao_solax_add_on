@@ -7,7 +7,9 @@ COMPOSER_BIN="composer"
 CONSOLE_BIN="vendor/bin/contao-console"
 BUNDLE_PACKAGE="cantao/solax-bundle"
 BUNDLE_VERSION="@dev"
+BUNDLE_REPOSITORY="https://github.com/404GamerNotFound/cantao_solax_add_on.git"
 CONFIG_RELATIVE_PATH="config/config.yml"
+ENV_FILE=".env.local"
 SKIP_COMPOSER=0
 DRY_RUN=0
 
@@ -127,6 +129,11 @@ if [[ ${SKIP_COMPOSER} -eq 0 ]]; then
   if ${COMPOSER_BIN} show "${BUNDLE_PACKAGE}" >/dev/null 2>&1; then
     log "Bundle ${BUNDLE_PACKAGE} ist bereits vorhanden. Überspringe composer require."
   else
+    if ! ${COMPOSER_BIN} config repositories.cantao-solax >/dev/null 2>&1; then
+      log "Registriere VCS-Repository für ${BUNDLE_PACKAGE} (cantao-solax)"
+      run_cmd "${COMPOSER_BIN} config repositories.cantao-solax vcs ${BUNDLE_REPOSITORY}"
+    fi
+
     log "Installiere ${BUNDLE_PACKAGE}${BUNDLE_VERSION:+ (${BUNDLE_VERSION})} via Composer"
     run_cmd "${COMPOSER_BIN} require ${BUNDLE_PACKAGE}${BUNDLE_VERSION:+:${BUNDLE_VERSION}}"
   fi
@@ -204,6 +211,28 @@ Die folgenden Umgebungsvariablen sollten in Ihrer .env oder Server-Konfiguration
 
 Installation abgeschlossen.
 HINT
+
+ENV_TARGET="${PROJECT_DIR}/${ENV_FILE}"
+ENV_SNIPPET=$(cat <<'ENVVARS'
+
+# Automatisch hinzugefügt von cantao/solax-bundle
+SOLAX_API_KEY=""
+SOLAX_SERIAL=""
+SOLAX_SITE_ID=""
+ENVVARS
+)
+
+if [[ -f "${ENV_TARGET}" ]] && grep -Eq "SOLAX_API_KEY|SOLAX_SERIAL" "${ENV_TARGET}"; then
+  log "Umgebungsvariablen sind bereits in ${ENV_FILE} vorhanden."
+else
+  if [[ ${DRY_RUN} -eq 1 ]]; then
+    log "(Dry-Run) Würde folgende Variablen an ${ENV_FILE} anhängen:${ENV_SNIPPET}"
+  else
+    log "Ergänze Platzhalter für Umgebungsvariablen in ${ENV_FILE}"
+    printf "%s" "${ENV_SNIPPET}" >> "${ENV_TARGET}"
+    log "Bitte tragen Sie Ihre echten Solax-Zugangsdaten in ${ENV_FILE} ein."
+  fi
+fi
 
 if [[ ${DRY_RUN} -eq 1 ]]; then
   log "Dry-Run abgeschlossen. Es wurden keine Änderungen vorgenommen."

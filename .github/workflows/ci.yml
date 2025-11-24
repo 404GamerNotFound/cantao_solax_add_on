@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  test:
+  python-tests:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -29,3 +29,23 @@ jobs:
 
       - name: Run tests
         run: pytest
+
+  phpunit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+          coverage: none
+          extensions: intl, json, mbstring
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Run PHPUnit
+        run: vendor/bin/phpunit

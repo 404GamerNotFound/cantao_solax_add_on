@@ -1,0 +1,14 @@
+<div class="mod_solax_metrics">
+  <h3>Solax Messwerte</h3>
+  <p class="source">Quelle: {{ solaxSource }}{% if solaxTimestamp %}, Stand: {{ solaxTimestamp|date('d.m.Y H:i') }}{% endif %}</p>
+  {% if metrics is empty %}
+    <p class="empty">Keine Messwerte verfügbar.</p>
+  {% else %}
+    <dl class="metrics">
+      {% for key, value in metrics %}
+        <dt>{{ key }}</dt>
+        <dd>{{ value }}</dd>
+      {% endfor %}
+    </dl>
+  {% endif %}
+</div>

@@ -1,9 +1,11 @@
 # CANTAO Solax Bundle
 
+**Deutsch & English below** – beide Abschnitte sind vollständig und enthalten dieselben Schritt-für-Schritt-Anleitungen.
+
 Das Bundle integriert Solax-Wechselrichter nahtlos in CANTAO. Es ruft zyklisch Messwerte über die Solax-Cloud-API ab, normalisiert
 sie in ein einheitliches Schema und stellt sie innerhalb von Contao als Datensätze sowie als Metrikquelle für CANTAO-Dashboards
 bereit. Ein separates Python- oder CLI-Tool wird nicht mehr benötigt – sämtliche Abläufe finden innerhalb des Contao-Ökosystems
-statt.
+statt. Darüber hinaus bringt das Bundle ein Frontend-Modul mit, sodass die Daten direkt in Seitenlayouts eingesetzt werden können.
 
 ## Funktionsumfang
 
@@ -15,42 +17,72 @@ statt.
 - Optionales Ausblenden unerwünschter Rohfelder sowie Rundung von Dezimalwerten
 - Registrierter Cron-Job `SolaxSyncCron`, der die Daten automatisiert synchronisiert
 - Backend-Integration über DCA, damit die Werte im Contao-Backend eingesehen werden können
+- Fake-Daten-Modus basierend auf aktuellem Sonnenaufgang und -untergang, Wolkendichte und Grundlast
+- Frontend-Modul **Solax Messwerte** zur Einbindung in Seiten und Layouts (nutzt Echt- oder Fakedaten)
 
-## Installation
+## 🚀 Schnellstart (DE)
 
-### Über Composer
+1. **Voraussetzungen**
+   - Bestehende Contao 5-Installation mit gültiger `DATABASE_URL` (z. B. in `.env.local`).
+   - PHP ≥ 8.1, Composer, und Shell-Zugriff auf das Projekt.
 
-Fügen Sie das Bundle Ihrem Contao-Projekt als VCS-Abhängigkeit hinzu und installieren Sie es per Composer:
+2. **Ein-Klick-Installation** (empfohlen)
+   - Im Contao-Projekt ausführen: `./scripts/oneclick-install.sh`
+   - Oder von außen mit Ziel: `./scripts/oneclick-install.sh /pfad/zu/contao`
+   - Das Skript erledigt alles: Repository registrieren, Bundle installieren, Migrationen ausführen, Basis-Config setzen und
+     fehlende Solax-Variablen (`SOLAX_API_KEY`, `SOLAX_SERIAL`, `SOLAX_SITE_ID`) als Platzhalter in `.env.local` anlegen.
 
-```bash
-composer config repositories.cantao-solax vcs https://github.com/404GamerNotFound/cantao_solax_add_on.git
-composer require cantao/solax-bundle:dev-main
-```
+3. **Manuelle Installation** (falls bevorzugt)
+   ```bash
+   composer config repositories.cantao-solax vcs https://github.com/404GamerNotFound/cantao_solax_add_on.git
+   composer require cantao/solax-bundle:dev-main
+   vendor/bin/contao-console contao:migrate --no-interaction
+   ```
 
-Stellen Sie vor dem Ausführen der Datenbankmigration sicher, dass Ihre Contao-Installation eine funktionierende
-`DATABASE_URL` konfiguriert hat (z. B. in `.env.local`). In frischen Projekten geschieht das üblicherweise über den
-Contao-Installationsassistenten (`vendor/bin/contao-console contao:install`) oder durch das Hinterlegen eines Eintrags wie
+4. **Echtdaten vs. Fakedaten wählen**
+   - Backend → **System → Einstellungen → Solax Fake-Daten**: Fake-Modus aktivieren/deaktivieren und Standort/Parameter setzen.
+   - Backend → **System → Einstellungen → Solax Zugangsdaten**: API-Key, Seriennummer und Plant-ID/UID hinterlegen.
+   - Ohne Zugangsdaten oder bei aktivem Fake-Modus nutzt das Bundle automatisch simulierte Werte.
 
-```dotenv
-DATABASE_URL="mysql://user:passwort@127.0.0.1:3306/datenbankname"
-```
+5. **Frontend einbinden**
+   - **Themes → Frontend-Module**: neues Modul vom Typ *Solax Messwerte* anlegen.
+   - Modul im Seitenlayout oder als Inhaltselement einfügen. Quelle (API/Fake/Cached) und Zeitstempel werden automatisch angezeigt.
 
-Führen Sie anschließend die Contao-Migrationen aus, damit die benötigte Datenbanktabelle angelegt wird:
+6. **Cron prüfen**
+   - Der Job `SolaxSyncCron` läuft im hinterlegten Intervall (Standard: stündlich) und holt neue Daten ab.
+   - Im System-Log sehen Sie, ob Werte geschrieben/übersprungen wurden oder ob Zugangsdaten fehlen.
 
-```bash
-vendor/bin/contao-console contao:migrate --no-interaction
-```
+## 🚀 Quickstart (EN)
 
-### Automatisiertes Installationsskript (optional)
+1. **Prerequisites**
+   - Existing Contao 5 installation with a valid `DATABASE_URL` (e.g., in `.env.local`).
+   - PHP ≥ 8.1, Composer, and shell access to the project.
 
-Alternativ kann das mitgelieferte Skript `scripts/install-contao.sh` die obigen Schritte ausführen. Beispiel:
+2. **One-click install** (recommended)
+   - Inside the Contao project: `./scripts/oneclick-install.sh`
+   - Or from outside with a target path: `./scripts/oneclick-install.sh /path/to/contao`
+   - The script handles everything: registers the VCS repo, installs the bundle, runs migrations, writes baseline config, and adds
+     missing Solax placeholders (`SOLAX_API_KEY`, `SOLAX_SERIAL`, `SOLAX_SITE_ID`) to `.env.local` if absent.
 
-```bash
-./scripts/install-contao.sh --project-dir /pfad/zu/contao
-```
+3. **Manual install** (if you prefer)
+   ```bash
+   composer config repositories.cantao-solax vcs https://github.com/404GamerNotFound/cantao_solax_add_on.git
+   composer require cantao/solax-bundle:dev-main
+   vendor/bin/contao-console contao:migrate --no-interaction
+   ```
 
-Das Skript führt – sofern nicht über Parameter deaktiviert – `composer require`, `contao:migrate` und ergänzt eine
-Basis-Konfiguration in `config/config.yml`.
+4. **Choose real vs. fake data**
+   - Backend → **System → Settings → Solax Fake Data**: toggle fake mode and set location/parameters.
+   - Backend → **System → Settings → Solax Credentials**: store API key, serial number, and plant/UID.
+   - With fake mode enabled or missing credentials, the bundle automatically serves simulated metrics.
+
+5. **Render on a page**
+   - **Themes → Frontend modules**: create a new module of type *Solax metrics*.
+   - Place it in your page layout or as a content element. It shows the source (API/Fake/Cached) and timestamp automatically.
+
+6. **Cron health check**
+   - The `SolaxSyncCron` job runs at the configured interval (hourly by default) to pull fresh data.
+   - Use the system log to see how many records were written/skipped or whether credentials are missing.
 
 ## Konfiguration
 
@@ -102,6 +134,12 @@ einen Hinweis im System-Log.
 
 Die Parameter `retry_count` und `retry_delay` definieren, wie oft und wie lange verzögert fehlgeschlagene API-Anfragen erneut
 versucht werden. So lassen sich temporäre Ausfälle oder Netzwerkprobleme abfedern, ohne dass der Cron-Job dauerhaft fehlschlägt.
+
+### Frontend-Einbindung
+
+Über das neue Frontend-Modul **Solax Messwerte** lassen sich die Daten direkt auf einer Seite anzeigen.
+
+English: Use the **Solax metrics** frontend module to drop the live/fake metrics onto any page.
 
 ## Betrieb
 
