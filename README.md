@@ -22,65 +22,77 @@ statt. Darüber hinaus bringt das Bundle ein Frontend-Modul mit, sodass die Date
 
 ## 🚀 Schnellstart (DE)
 
-1. **Voraussetzungen**
+1. **Repository klonen** (wenn Sie das Bundle oder die Skripte lokal ausführen möchten)
+   ```bash
+   git clone https://github.com/404GamerNotFound/cantao_solax_add_on.git
+   cd cantao_solax_add_on
+   ```
+
+2. **Voraussetzungen**
    - Bestehende Contao 5-Installation mit gültiger `DATABASE_URL` (z. B. in `.env.local`).
    - PHP ≥ 8.1, Composer, und Shell-Zugriff auf das Projekt.
 
-2. **Ein-Klick-Installation** (empfohlen)
+3. **Ein-Klick-Installation** (empfohlen)
    - Im Contao-Projekt ausführen: `./scripts/oneclick-install.sh`
    - Oder von außen mit Ziel: `./scripts/oneclick-install.sh /pfad/zu/contao`
    - Das Skript erledigt alles: Repository registrieren, Bundle installieren, Migrationen ausführen, Basis-Config setzen und
      fehlende Solax-Variablen (`SOLAX_API_KEY`, `SOLAX_SERIAL`, `SOLAX_SITE_ID`) als Platzhalter in `.env.local` anlegen.
 
-3. **Manuelle Installation** (falls bevorzugt)
+4. **Manuelle Installation** (falls bevorzugt)
    ```bash
    composer config repositories.cantao-solax vcs https://github.com/404GamerNotFound/cantao_solax_add_on.git
    composer require cantao/solax-bundle:dev-main
    vendor/bin/contao-console contao:migrate --no-interaction
    ```
 
-4. **Echtdaten vs. Fakedaten wählen**
+5. **Echtdaten vs. Fakedaten wählen**
    - Backend → **System → Einstellungen → Solax Fake-Daten**: Fake-Modus aktivieren/deaktivieren und Standort/Parameter setzen.
    - Backend → **System → Einstellungen → Solax Zugangsdaten**: API-Key, Seriennummer und Plant-ID/UID hinterlegen.
    - Ohne Zugangsdaten oder bei aktivem Fake-Modus nutzt das Bundle automatisch simulierte Werte.
 
-5. **Frontend einbinden**
+6. **Frontend einbinden**
    - **Themes → Frontend-Module**: neues Modul vom Typ *Solax Messwerte* anlegen.
    - Modul im Seitenlayout oder als Inhaltselement einfügen. Quelle (API/Fake/Cached) und Zeitstempel werden automatisch angezeigt.
 
-6. **Cron prüfen**
+7. **Cron prüfen**
    - Der Job `SolaxSyncCron` läuft im hinterlegten Intervall (Standard: stündlich) und holt neue Daten ab.
    - Im System-Log sehen Sie, ob Werte geschrieben/übersprungen wurden oder ob Zugangsdaten fehlen.
 
 ## 🚀 Quickstart (EN)
 
-1. **Prerequisites**
+1. **Clone the repository** (if you want to run the bundle or scripts locally)
+   ```bash
+   git clone https://github.com/404GamerNotFound/cantao_solax_add_on.git
+   cd cantao_solax_add_on
+   ```
+
+2. **Prerequisites**
    - Existing Contao 5 installation with a valid `DATABASE_URL` (e.g., in `.env.local`).
    - PHP ≥ 8.1, Composer, and shell access to the project.
 
-2. **One-click install** (recommended)
+3. **One-click install** (recommended)
    - Inside the Contao project: `./scripts/oneclick-install.sh`
    - Or from outside with a target path: `./scripts/oneclick-install.sh /path/to/contao`
    - The script handles everything: registers the VCS repo, installs the bundle, runs migrations, writes baseline config, and adds
      missing Solax placeholders (`SOLAX_API_KEY`, `SOLAX_SERIAL`, `SOLAX_SITE_ID`) to `.env.local` if absent.
 
-3. **Manual install** (if you prefer)
+4. **Manual install** (if you prefer)
    ```bash
    composer config repositories.cantao-solax vcs https://github.com/404GamerNotFound/cantao_solax_add_on.git
    composer require cantao/solax-bundle:dev-main
    vendor/bin/contao-console contao:migrate --no-interaction
    ```
 
-4. **Choose real vs. fake data**
+5. **Choose real vs. fake data**
    - Backend → **System → Settings → Solax Fake Data**: toggle fake mode and set location/parameters.
    - Backend → **System → Settings → Solax Credentials**: store API key, serial number, and plant/UID.
    - With fake mode enabled or missing credentials, the bundle automatically serves simulated metrics.
 
-5. **Render on a page**
+6. **Render on a page**
    - **Themes → Frontend modules**: create a new module of type *Solax metrics*.
    - Place it in your page layout or as a content element. It shows the source (API/Fake/Cached) and timestamp automatically.
 
-6. **Cron health check**
+7. **Cron health check**
    - The `SolaxSyncCron` job runs at the configured interval (hourly by default) to pull fresh data.
    - Use the system log to see how many records were written/skipped or whether credentials are missing.
 
