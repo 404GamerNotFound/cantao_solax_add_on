@@ -1,4 +1,9 @@
 # CANTAO Solax Bundle
+
+[![Stars](https://img.shields.io/github/stars/404GamerNotFound/cantao_solax_add_on?style=for-the-badge&logo=github&logoColor=white&label=Stars&color=blue)](https://github.com/404GamerNotFound/cantao_solax_add_on/stargazers)
+[![Sponsors](https://img.shields.io/github/sponsors/404GamerNotFound?style=for-the-badge&logo=github&logoColor=white&label=Sponsors&color=blue)](https://github.com/sponsors/404GamerNotFound)
+[![PayPal](https://img.shields.io/badge/PayPal-ME-blue?style=for-the-badge&logo=paypal&logoColor=white)](https://www.paypal.com/paypalme/TonyBrueser)
+[![Revolut](https://img.shields.io/badge/Revolut-ME-blue?style=for-the-badge&logo=revolut&logoColor=white)](https://revolut.me/tony1995)
 **Deutsch & English below** – beide Abschnitte sind vollständig und enthalten dieselben Schritt-für-Schritt-Anleitungen.
 
 Das Bundle integriert Solax-Wechselrichter nahtlos in CANTAO. Es ruft zyklisch Messwerte über die Solax-Cloud-API ab, normalisiert
@@ -196,4 +201,3 @@ MIT
 ## Support
 
 If you find this project helpful, you can support it via PayPal: [paypal.me/TonyBrueser](https://www.paypal.com/paypalme/TonyBrueser)
-
